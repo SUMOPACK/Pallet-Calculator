@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📦 Pallet Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📦 Pallet Calculator</h1>
+            <p>Calculate Pallet Capacity for Cartons and Total Pieces</p>
+        </header>
+
+        <div class="calculator">
+            <div class="input-section">
+                <h2>Input Parameters</h2>
+                
+                <div class="input-group">
+                    <label for="length">(L) mm:</label>
+                    <input type="number" id="length" min="1" max="999" placeholder="输入长度" value="300">
+                </div>
+
+                <div class="input-group">
+                    <label for="width">(W) mm:</label>
+                    <input type="number" id="width" min="1" max="999" placeholder="输入宽度" value="200">
+                </div>
+
+                <div class="input-group">
+                    <label for="height">(H) mm:</label>
+                    <input type="number" id="height" min="1" max="999" placeholder="输入高度" value="100">
+                </div>
+
+                <div class="input-group">
+                    <label for="flute">Corrugated Board (Flute):</label>
+                    <select id="flute">
+                        <option value="BAF">BAF</option>
+                        <option value="AF" selected>AF</option>
+                        <option value="BF">BF</option>
+                    </select>
+                </div>
+
+                <button onclick="calculate()" class="calculate-btn">Capacity</button>
+            </div>
+
+            <div class="result-section">
+                <h2>Results</h2>
+                
+                <div class="result-card">
+                    <h3> Intermediate Parameters</h3>
+                    <div class="result-row">
+                        <span>a = L + W:</span>
+                        <span id="param-a">-</span>
+                    </div>
+                    <div class="result-row">
+                        <span>b = W + H:</span>
+                        <span id="param-b">-</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Length Direction Quantity:</span>
+                        <span id="param-c">-</span>
+                    </div>
+                    <div class="result-row">
+                        <span>Width Direction Quantity:</span>
+                        <span id="param-d">-</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>Final Results</h3>
+                    <div class="result-row highlight">
+                        <span>Bundles per Pallet:</span>
+                        <span id="result-bundles">-</span>
+                    </div>
+                    <div class="result-row highlight">
+                        <span>Total Pieces:</span>
+                        <span id="result-total">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
