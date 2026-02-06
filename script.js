@@ -28,7 +28,7 @@ function calculate() {
     const a = length + width;
     const b = width + height;
     
-    // 计算方向数量（基于1300x1100mm）
+    // 计算方向数量（基于1300x1250mm）
     const c = Math.floor(PALLET_DIMENSIONS.length / a);
     const d = Math.floor(PALLET_DIMENSIONS.width / b);
     
@@ -72,4 +72,5 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculate);
     });
 });
+
 
