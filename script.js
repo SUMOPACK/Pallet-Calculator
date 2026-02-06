@@ -36,10 +36,9 @@ function calculate() {
     // 计算最终结果
     const flute = FLUTE_PARAMS[fluteType];
     const totalPcs = bestResult.bundles * flute.pcsPerBundle * flute.layers;
-    const pcsPerBundle = flute.pcsPerBundle * flute.layers;
 
     // 显示结果
-    displayResults(bestResult, totalPcs, pcsPerBundle);
+    displayResults(bestResult, totalPcs);
     
     // 显示所有方案的比较
     displayLayoutComparison(allLayoutResults, bestResult);
@@ -195,7 +194,7 @@ function validateInput(length, width, height) {
            length <= 999 && width <= 999 && height <= 999;
 }
 
-function displayResults(bestResult, totalPcs, pcsPerBundle) {
+function displayResults(bestResult, totalPcs) {
     // 显示中间参数
     document.getElementById('param-a').textContent = `${bestResult.a} mm`;
     document.getElementById('param-b').textContent = `${bestResult.b} mm`;
@@ -205,9 +204,6 @@ function displayResults(bestResult, totalPcs, pcsPerBundle) {
     // 显示最终结果
     document.getElementById('result-bundles').textContent = `${bestResult.bundles} bundles`;
     document.getElementById('result-total').textContent = `${totalPcs.toLocaleString()} pieces`;
-    
-    // 显示托盘数量计算
-    displayPalletCountInfo(totalPcs, bestResult.bundles, pcsPerBundle);
     
     // 显示最优方案描述
     const resultCard = document.querySelector('.result-section .result-card:nth-child(2)');
@@ -225,57 +221,6 @@ function displayResults(bestResult, totalPcs, pcsPerBundle) {
             </div>
         `;
         resultCard.appendChild(bestLayoutInfo);
-    }
-}
-
-// 新功能：显示托盘数量计算
-function displayPalletCountInfo(totalPieces, bundlesPerPallet, pcsPerBundle) {
-    // 找到结果显示区域
-    const resultCards = document.querySelectorAll('.result-section .result-card');
-    let palletCard = document.querySelector('.pallet-count-card');
-    
-    // 如果不存在托盘计算卡片，创建一个
-    if (!palletCard && resultCards.length > 0) {
-        palletCard = document.createElement('div');
-        palletCard.className = 'result-card pallet-count-card';
-        palletCard.innerHTML = '<h3>Pallet Quantity Calculation</h3>';
-        document.querySelector('.result-section').appendChild(palletCard);
-    }
-    
-    if (palletCard) {
-        // 计算需要多少个托盘来装一定数量的纸箱
-        const piecesPerPallet = bundlesPerPallet * pcsPerBundle;
-        
-        // 示例：如果需要装1000片，计算需要多少托盘
-        const targetPieces = 1000;
-        const palletsNeeded = Math.ceil(targetPieces / piecesPerPallet);
-        const piecesInPallets = palletsNeeded * piecesPerPallet;
-        const remainingPieces = piecesInPallets - targetPieces;
-        
-        palletCard.innerHTML = `
-            <h3>Pallet Quantity Calculation</h3>
-            <div class="result-row">
-                <span>Pieces per pallet:</span>
-                <span>${piecesPerPallet.toLocaleString()} pieces</span>
-            </div>
-            <div class="result-row">
-                <span>Bundles per pallet:</span>
-                <span>${bundlesPerPallet} bundles</span>
-            </div>
-            <div class="result-row highlight">
-                <span>For ${targetPieces} pieces:</span>
-                <span>${palletsNeeded} pallets needed</span>
-            </div>
-            ${remainingPieces > 0 ? `
-            <div class="result-row">
-                <span>Total can be packed:</span>
-                <span>${piecesInPallets.toLocaleString()} pieces</span>
-            </div>
-            <div class="result-row">
-                <span>Excess pieces:</span>
-                <span>${remainingPieces} pieces</span>
-            </div>` : ''}
-        `;
     }
 }
 
