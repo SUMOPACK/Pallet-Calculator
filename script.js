@@ -23,14 +23,11 @@ function calculate() {
 
     // 验证输入
     if (!validateInput(length, width, height)) {
-        showError('请输入有效的尺寸 (1-999mm)');
+        alert('请输入有效的尺寸 (1-999mm)');
         return;
     }
 
-    // 隐藏错误信息
-    hideError();
-
-    // 计算所有可能的摆放方案
+    // 计算所有可能的摆放方案（包括横放和竖放）
     allLayoutResults = calculateAllLayouts(length, width, height);
     
     // 选择最优方案（最多数量）
@@ -48,25 +45,25 @@ function calculate() {
     displayLayoutComparison(allLayoutResults, bestResult);
 }
 
-// 计算所有可能的摆放方案
+// 计算所有可能的摆放方案（包括横放和竖放）
 function calculateAllLayouts(length, width, height) {
     const results = [];
     const dimensions = [length, width, height];
-    const dimNames = ['Length', 'Width', 'Height'];
+    const dimNames = ['L', 'W', 'H'];
     
-    // 生成所有可能的方向组合
+    // 定义所有可能的组合：8种不同的摆放方式
     const combinations = [
-        // 原始方向组合
-        { aCombo: [0, 1], bCombo: [1, 2], name: "L+W along length, W+H along width" },
-        { aCombo: [0, 1], bCombo: [0, 2], name: "L+W along width, L+H along length" },
-        { aCombo: [0, 2], bCombo: [1, 2], name: "L+H along length, W+H along width" },
-        { aCombo: [0, 2], bCombo: [0, 1], name: "L+H along width, L+W along length" },
+        // 基础组合
+        { aCombo: [0, 1], bCombo: [1, 2], name: "L+W (长边), W+H (短边)" }, // 原方案
+        { aCombo: [0, 1], bCombo: [0, 2], name: "L+W (短边), L+H (长边)" }, // 旋转90度
+        { aCombo: [0, 2], bCombo: [1, 2], name: "L+H (长边), W+H (短边)" },
+        { aCombo: [0, 2], bCombo: [0, 1], name: "L+H (短边), L+W (长边)" },
         
-        // 增加更多方向组合
-        { aCombo: [1, 0], bCombo: [0, 2], name: "W+L along length, L+H along width" },
-        { aCombo: [1, 2], bCombo: [0, 1], name: "W+H along length, L+W along width" },
-        { aCombo: [2, 0], bCombo: [1, 2], name: "H+L along length, W+H along width" },
-        { aCombo: [2, 1], bCombo: [0, 2], name: "H+W along length, L+H along width" }
+        // 更多的横放竖放组合
+        { aCombo: [1, 0], bCombo: [0, 2], name: "W+L (长边), L+H (短边)" },
+        { aCombo: [1, 0], bCombo: [1, 2], name: "W+L (短边), W+H (长边)" },
+        { aCombo: [1, 2], bCombo: [0, 1], name: "W+H (长边), L+W (短边)" },
+        { aCombo: [2, 1], bCombo: [0, 2], name: "H+W (长边), L+H (短边)" }
     ];
 
     combinations.forEach((combo, index) => {
@@ -94,10 +91,11 @@ function calculateAllLayouts(length, width, height) {
             c: cCount,
             d: dCount,
             bundles: cCount * dCount,
-            description: `${aDesc} (${aDim}mm) 沿托盘长度，${bDesc} (${bDim}mm) 沿托盘宽度`,
+            description: `${aDesc} (${aDim}mm) 沿托盘长度方向，${bDesc} (${bDim}mm) 沿托盘宽度方向`,
             efficiency: calculateEfficiency(aDim, bDim, cCount, dCount),
             directionA: combo.aCombo.map(i => dimNames[i]),
-            directionB: combo.bCombo.map(i => dimNames[i])
+            directionB: combo.bCombo.map(i => dimNames[i]),
+            layoutName: combo.name
         });
     });
 
@@ -126,7 +124,18 @@ function selectBestLayout(results) {
 // 显示所有方案的比较
 function displayLayoutComparison(results, bestResult) {
     const comparisonDiv = document.getElementById('layout-comparison');
-    if (!comparisonDiv) return;
+    if (!comparisonDiv) {
+        // 如果没有这个元素，就在页面上创建一个
+        const resultSection = document.querySelector('.result-section');
+        if (resultSection) {
+            comparisonDiv = document.createElement('div');
+            comparisonDiv.id = 'layout-comparison';
+            comparisonDiv.className = 'result-card';
+            resultSection.appendChild(comparisonDiv);
+        } else {
+            return; // 没有找到合适的位置放置
+        }
+    }
     
     // 清空之前的内容
     comparisonDiv.innerHTML = '<h3>所有摆放方案比较:</h3>';
@@ -134,24 +143,22 @@ function displayLayoutComparison(results, bestResult) {
     // 创建表格
     const table = document.createElement('table');
     table.className = 'comparison-table';
-    
-    // 表头
-    const thead = document.createElement('thead');
-    thead.innerHTML = `
-        <tr>
-            <th>方案</th>
-            <th>捆数</th>
-            <th>A尺寸</th>
-            <th>B尺寸</th>
-            <th>每方向数量</th>
-            <th>空间利用率</th>
-            <th>描述</th>
-        </tr>
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>方案</th>
+                <th>捆数</th>
+                <th>尺寸A</th>
+                <th>尺寸B</th>
+                <th>数量</th>
+                <th>利用率</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
     `;
-    table.appendChild(thead);
     
-    // 表格主体
-    const tbody = document.createElement('tbody');
+    const tbody = table.querySelector('tbody');
     
     results.forEach((result) => {
         const isBest = result.id === bestResult.id;
@@ -159,19 +166,17 @@ function displayLayoutComparison(results, bestResult) {
         row.className = isBest ? 'best-row' : '';
         
         row.innerHTML = `
-            <td>${isBest ? '⭐ ' : ''}${result.name}</td>
+            <td>${isBest ? '⭐ ' : ''}方案 ${result.id}</td>
             <td><strong>${result.bundles}</strong></td>
             <td>${result.a}mm</td>
             <td>${result.b}mm</td>
             <td>${result.c}×${result.d}</td>
             <td>${result.efficiency}%</td>
-            <td>${result.description}</td>
         `;
         
         tbody.appendChild(row);
     });
     
-    table.appendChild(tbody);
     comparisonDiv.appendChild(table);
     
     // 添加托盘尺寸信息
@@ -179,6 +184,7 @@ function displayLayoutComparison(results, bestResult) {
     palletInfo.className = 'pallet-info';
     palletInfo.innerHTML = `
         <p><small>托盘尺寸: ${PALLET_DIMENSIONS.length}mm × ${PALLET_DIMENSIONS.width}mm</small></p>
+        <p><small>最优方案: ${bestResult.layoutName}</small></p>
     `;
     comparisonDiv.appendChild(palletInfo);
 }
@@ -196,158 +202,85 @@ function displayResults(bestResult, totalPcs, pcsPerBundle) {
     document.getElementById('param-c').textContent = `${bestResult.c}`;
     document.getElementById('param-d').textContent = `${bestResult.d}`;
     
-    // 显示最优方案描述
-    const layoutInfo = document.getElementById('layout-info');
-    if (!layoutInfo) {
-        // 如果还没有这个元素，创建一个
-        const resultDiv = document.querySelector('.results');
-        const info = document.createElement('div');
-        info.id = 'layout-info';
-        info.className = 'layout-info';
-        resultDiv.insertBefore(info, resultDiv.firstChild);
-    }
-    
-    document.getElementById('layout-info').innerHTML = `
-        <h3>最优摆放方案:</h3>
-        <div class="best-layout-details">
-            <p><strong>${bestResult.name}:</strong> ${bestResult.bundles} 捆</p>
-            <p>${bestResult.description}</p>
-            <p>方向A: ${bestResult.directionA.join('+')}, 方向B: ${bestResult.directionB.join('+')}</p>
-            <p>空间利用率: ${bestResult.efficiency}%</p>
-        </div>
-    `;
-    
     // 显示最终结果
     document.getElementById('result-bundles').textContent = `${bestResult.bundles} 捆`;
     document.getElementById('result-total').textContent = `${totalPcs.toLocaleString()} 片`;
     
-    // 显示每捆数量
-    const bundleInfo = document.getElementById('bundle-info');
-    if (bundleInfo) {
-        bundleInfo.textContent = `每捆: ${pcsPerBundle} 片`;
-    }
+    // 显示托盘数量计算
+    displayPalletCountInfo(totalPcs, bestResult.bundles, pcsPerBundle);
     
-    // 更新页面标题显示托盘使用优化
-    updatePageTitle(bestResult);
-}
-
-// 更新页面标题显示优化信息
-function updatePageTitle(bestResult) {
-    const originalLayouts = allLayoutResults.filter(r => r.id <= 4);
-    const originalBest = selectBestLayout(originalLayouts);
-    
-    if (bestResult.bundles > originalBest.bundles) {
-        const improvement = Math.round(((bestResult.bundles - originalBest.bundles) / originalBest.bundles) * 100);
-        document.title = `托盘计算器 - 优化 ${improvement}%`;
-    } else {
-        document.title = '托盘计算器';
-    }
-}
-
-// 错误处理函数
-function showError(message) {
-    let errorDiv = document.getElementById('error-message');
-    if (!errorDiv) {
-        errorDiv = document.createElement('div');
-        errorDiv.id = 'error-message';
-        errorDiv.className = 'error-message';
-        const container = document.querySelector('.container');
-        container.insertBefore(errorDiv, container.firstChild);
-    }
-    errorDiv.textContent = message;
-    errorDiv.style.display = 'block';
-}
-
-function hideError() {
-    const errorDiv = document.getElementById('error-message');
-    if (errorDiv) {
-        errorDiv.style.display = 'none';
+    // 显示最优方案描述
+    const resultCard = document.querySelector('.result-section .result-card:nth-child(2)');
+    if (resultCard) {
+        const bestLayoutInfo = document.createElement('div');
+        bestLayoutInfo.className = 'best-layout-info';
+        bestLayoutInfo.innerHTML = `
+            <div class="result-row">
+                <span>最优摆放:</span>
+                <span>${bestResult.layoutName}</span>
+            </div>
+            <div class="result-row">
+                <span>空间利用率:</span>
+                <span>${bestResult.efficiency}%</span>
+            </div>
+        `;
+        resultCard.appendChild(bestLayoutInfo);
     }
 }
 
-// 重置表单
-function resetForm() {
-    document.getElementById('length').value = '';
-    document.getElementById('width').value = '';
-    document.getElementById('height').value = '';
-    document.getElementById('flute').value = 'BAF';
+// 新功能：显示托盘数量计算
+function displayPalletCountInfo(totalPieces, bundlesPerPallet, pcsPerBundle) {
+    // 找到结果显示区域
+    const resultCards = document.querySelectorAll('.result-section .result-card');
+    let palletCard = document.querySelector('.pallet-count-card');
     
-    // 清空结果显示
-    document.getElementById('param-a').textContent = '0 mm';
-    document.getElementById('param-b').textContent = '0 mm';
-    document.getElementById('param-c').textContent = '0';
-    document.getElementById('param-d').textContent = '0';
-    document.getElementById('result-bundles').textContent = '0 捆';
-    document.getElementById('result-total').textContent = '0 片';
-    
-    const layoutInfo = document.getElementById('layout-info');
-    if (layoutInfo) {
-        layoutInfo.innerHTML = '';
+    // 如果不存在托盘计算卡片，创建一个
+    if (!palletCard && resultCards.length > 0) {
+        palletCard = document.createElement('div');
+        palletCard.className = 'result-card pallet-count-card';
+        palletCard.innerHTML = '<h3>托盘数量计算</h3>';
+        document.querySelector('.result-section').appendChild(palletCard);
     }
     
-    const comparisonDiv = document.getElementById('layout-comparison');
-    if (comparisonDiv) {
-        comparisonDiv.innerHTML = '';
+    if (palletCard) {
+        // 计算需要多少个托盘来装一定数量的纸箱
+        const piecesPerPallet = bundlesPerPallet * pcsPerBundle;
+        
+        // 示例：如果需要装1000片，计算需要多少托盘
+        const targetPieces = 1000;
+        const palletsNeeded = Math.ceil(targetPieces / piecesPerPallet);
+        const piecesInPallets = palletsNeeded * piecesPerPallet;
+        const remainingPieces = piecesInPallets - targetPieces;
+        
+        palletCard.innerHTML = `
+            <h3>托盘数量计算</h3>
+            <div class="result-row">
+                <span>每托盘片数:</span>
+                <span>${piecesPerPallet.toLocaleString()} 片</span>
+            </div>
+            <div class="result-row">
+                <span>每托盘捆数:</span>
+                <span>${bundlesPerPallet} 捆</span>
+            </div>
+            <div class="result-row highlight">
+                <span>装${targetPieces}片需要:</span>
+                <span>${palletsNeeded} 个托盘</span>
+            </div>
+            ${remainingPieces > 0 ? `
+            <div class="result-row">
+                <span>可装载片数:</span>
+                <span>${piecesInPallets.toLocaleString()} 片</span>
+            </div>
+            <div class="result-row">
+                <span>多出片数:</span>
+                <span>${remainingPieces} 片</span>
+            </div>` : ''}
+        `;
     }
-    
-    hideError();
-    document.title = '托盘计算器';
-}
-
-// 导出结果
-function exportResults() {
-    const length = document.getElementById('length').value;
-    const width = document.getElementById('width').value;
-    const height = document.getElementById('height').value;
-    const fluteType = document.getElementById('flute').value;
-    
-    if (!validateInput(parseFloat(length), parseFloat(width), parseFloat(height))) {
-        showError('无法导出：请输入有效数据');
-        return;
-    }
-    
-    const bestResult = allLayoutResults[0];
-    const flute = FLUTE_PARAMS[fluteType];
-    const totalPcs = bestResult.bundles * flute.pcsPerBundle * flute.layers;
-    
-    const data = {
-        timestamp: new Date().toLocaleString(),
-        input: {
-            length: `${length}mm`,
-            width: `${width}mm`,
-            height: `${height}mm`,
-            fluteType: fluteType
-        },
-        palletDimensions: {
-            length: `${PALLET_DIMENSIONS.length}mm`,
-            width: `${PALLET_DIMENSIONS.width}mm`
-        },
-        bestLayout: bestResult,
-        results: {
-            bundles: bestResult.bundles,
-            totalPieces: totalPcs,
-            piecesPerBundle: flute.pcsPerBundle * flute.layers
-        }
-    };
-    
-    const dataStr = JSON.stringify(data, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `pallet-calculation-${new Date().toISOString().slice(0,10)}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
 }
 
 // 页面加载时自动计算一次
 document.addEventListener('DOMContentLoaded', function() {
-    // 设置默认值
-    document.getElementById('length').value = '400';
-    document.getElementById('width').value = '300';
-    document.getElementById('height').value = '200';
-    
     // 初始化计算
     calculate();
     
@@ -356,31 +289,4 @@ document.addEventListener('DOMContentLoaded', function() {
     inputs.forEach(input => {
         input.addEventListener('input', calculate);
     });
-    
-    // 添加重置按钮事件
-    const resetBtn = document.getElementById('reset-btn');
-    if (resetBtn) {
-        resetBtn.addEventListener('click', resetForm);
-    }
-    
-    // 添加导出按钮事件
-    const exportBtn = document.getElementById('export-btn');
-    if (exportBtn) {
-        exportBtn.addEventListener('click', exportResults);
-    }
-});
-
-// 添加键盘快捷键支持
-document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && e.key === 'r') {
-        e.preventDefault();
-        resetForm();
-    }
-    if (e.ctrlKey && e.key === 'e') {
-        e.preventDefault();
-        exportResults();
-    }
-    if (e.key === 'Escape') {
-        resetForm();
-    }
 });
