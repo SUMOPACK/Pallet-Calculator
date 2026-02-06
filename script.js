@@ -5,7 +5,7 @@ const FLUTE_PARAMS = {
     BF: { layers: 16, pcsPerBundle: 20 }
 };
 
-// Pallet 尺寸标准
+// 托盘尺寸标准
 const PALLET_DIMENSIONS = {
     width: 1300,   // 托盘宽度
     length: 1250   // 托盘长度
@@ -23,7 +23,7 @@ function calculate() {
 
     // 验证输入
     if (!validateInput(length, width, height)) {
-        alert('请输入有效的尺寸 (1-999mm)');
+        alert('Please enter valid dimensions (1-999mm)');
         return;
     }
 
@@ -54,16 +54,16 @@ function calculateAllLayouts(length, width, height) {
     // 定义所有可能的组合：8种不同的摆放方式
     const combinations = [
         // 基础组合
-        { aCombo: [0, 1], bCombo: [1, 2], name: "L+W (长边), W+H (短边)" }, // 原方案
-        { aCombo: [0, 1], bCombo: [0, 2], name: "L+W (短边), L+H (长边)" }, // 旋转90度
-        { aCombo: [0, 2], bCombo: [1, 2], name: "L+H (长边), W+H (短边)" },
-        { aCombo: [0, 2], bCombo: [0, 1], name: "L+H (短边), L+W (长边)" },
+        { aCombo: [0, 1], bCombo: [1, 2], name: "L+W (long side), W+H (short side)" }, // 原方案
+        { aCombo: [0, 1], bCombo: [0, 2], name: "L+W (short side), L+H (long side)" }, // 旋转90度
+        { aCombo: [0, 2], bCombo: [1, 2], name: "L+H (long side), W+H (short side)" },
+        { aCombo: [0, 2], bCombo: [0, 1], name: "L+H (short side), L+W (long side)" },
         
         // 更多的横放竖放组合
-        { aCombo: [1, 0], bCombo: [0, 2], name: "W+L (长边), L+H (短边)" },
-        { aCombo: [1, 0], bCombo: [1, 2], name: "W+L (短边), W+H (长边)" },
-        { aCombo: [1, 2], bCombo: [0, 1], name: "W+H (长边), L+W (短边)" },
-        { aCombo: [2, 1], bCombo: [0, 2], name: "H+W (长边), L+H (短边)" }
+        { aCombo: [1, 0], bCombo: [0, 2], name: "W+L (long side), L+H (short side)" },
+        { aCombo: [1, 0], bCombo: [1, 2], name: "W+L (short side), W+H (long side)" },
+        { aCombo: [1, 2], bCombo: [0, 1], name: "W+H (long side), L+W (short side)" },
+        { aCombo: [2, 1], bCombo: [0, 2], name: "H+W (long side), L+H (short side)" }
     ];
 
     combinations.forEach((combo, index) => {
@@ -85,13 +85,13 @@ function calculateAllLayouts(length, width, height) {
         
         results.push({
             id: index + 1,
-            name: `方案 ${index + 1}`,
+            name: `Option ${index + 1}`,
             a: aDim,
             b: bDim,
             c: cCount,
             d: dCount,
             bundles: cCount * dCount,
-            description: `${aDesc} (${aDim}mm) 沿托盘长度方向，${bDesc} (${bDim}mm) 沿托盘宽度方向`,
+            description: `${aDesc} (${aDim}mm) along pallet length, ${bDesc} (${bDim}mm) along pallet width`,
             efficiency: calculateEfficiency(aDim, bDim, cCount, dCount),
             directionA: combo.aCombo.map(i => dimNames[i]),
             directionB: combo.bCombo.map(i => dimNames[i]),
@@ -138,7 +138,7 @@ function displayLayoutComparison(results, bestResult) {
     }
     
     // 清空之前的内容
-    comparisonDiv.innerHTML = '<h3>所有摆放方案比较:</h3>';
+    comparisonDiv.innerHTML = '<h3>All Layout Options Comparison:</h3>';
     
     // 创建表格
     const table = document.createElement('table');
@@ -146,12 +146,12 @@ function displayLayoutComparison(results, bestResult) {
     table.innerHTML = `
         <thead>
             <tr>
-                <th>方案</th>
-                <th>捆数</th>
-                <th>尺寸A</th>
-                <th>尺寸B</th>
-                <th>数量</th>
-                <th>利用率</th>
+                <th>Option</th>
+                <th>Bundles</th>
+                <th>Dim A</th>
+                <th>Dim B</th>
+                <th>Qty</th>
+                <th>Efficiency</th>
             </tr>
         </thead>
         <tbody>
@@ -166,7 +166,7 @@ function displayLayoutComparison(results, bestResult) {
         row.className = isBest ? 'best-row' : '';
         
         row.innerHTML = `
-            <td>${isBest ? '⭐ ' : ''}方案 ${result.id}</td>
+            <td>${isBest ? '⭐ ' : ''}Option ${result.id}</td>
             <td><strong>${result.bundles}</strong></td>
             <td>${result.a}mm</td>
             <td>${result.b}mm</td>
@@ -183,8 +183,8 @@ function displayLayoutComparison(results, bestResult) {
     const palletInfo = document.createElement('div');
     palletInfo.className = 'pallet-info';
     palletInfo.innerHTML = `
-        <p><small>托盘尺寸: ${PALLET_DIMENSIONS.length}mm × ${PALLET_DIMENSIONS.width}mm</small></p>
-        <p><small>最优方案: ${bestResult.layoutName}</small></p>
+        <p><small>Pallet Size: ${PALLET_DIMENSIONS.length}mm × ${PALLET_DIMENSIONS.width}mm</small></p>
+        <p><small>Best Option: ${bestResult.layoutName}</small></p>
     `;
     comparisonDiv.appendChild(palletInfo);
 }
@@ -203,8 +203,8 @@ function displayResults(bestResult, totalPcs, pcsPerBundle) {
     document.getElementById('param-d').textContent = `${bestResult.d}`;
     
     // 显示最终结果
-    document.getElementById('result-bundles').textContent = `${bestResult.bundles} 捆`;
-    document.getElementById('result-total').textContent = `${totalPcs.toLocaleString()} 片`;
+    document.getElementById('result-bundles').textContent = `${bestResult.bundles} bundles`;
+    document.getElementById('result-total').textContent = `${totalPcs.toLocaleString()} pieces`;
     
     // 显示托盘数量计算
     displayPalletCountInfo(totalPcs, bestResult.bundles, pcsPerBundle);
@@ -216,11 +216,11 @@ function displayResults(bestResult, totalPcs, pcsPerBundle) {
         bestLayoutInfo.className = 'best-layout-info';
         bestLayoutInfo.innerHTML = `
             <div class="result-row">
-                <span>最优摆放:</span>
+                <span>Best Layout:</span>
                 <span>${bestResult.layoutName}</span>
             </div>
             <div class="result-row">
-                <span>空间利用率:</span>
+                <span>Space Efficiency:</span>
                 <span>${bestResult.efficiency}%</span>
             </div>
         `;
@@ -238,7 +238,7 @@ function displayPalletCountInfo(totalPieces, bundlesPerPallet, pcsPerBundle) {
     if (!palletCard && resultCards.length > 0) {
         palletCard = document.createElement('div');
         palletCard.className = 'result-card pallet-count-card';
-        palletCard.innerHTML = '<h3>托盘数量计算</h3>';
+        palletCard.innerHTML = '<h3>Pallet Quantity Calculation</h3>';
         document.querySelector('.result-section').appendChild(palletCard);
     }
     
@@ -253,27 +253,27 @@ function displayPalletCountInfo(totalPieces, bundlesPerPallet, pcsPerBundle) {
         const remainingPieces = piecesInPallets - targetPieces;
         
         palletCard.innerHTML = `
-            <h3>托盘数量计算</h3>
+            <h3>Pallet Quantity Calculation</h3>
             <div class="result-row">
-                <span>每托盘片数:</span>
-                <span>${piecesPerPallet.toLocaleString()} 片</span>
+                <span>Pieces per pallet:</span>
+                <span>${piecesPerPallet.toLocaleString()} pieces</span>
             </div>
             <div class="result-row">
-                <span>每托盘捆数:</span>
-                <span>${bundlesPerPallet} 捆</span>
+                <span>Bundles per pallet:</span>
+                <span>${bundlesPerPallet} bundles</span>
             </div>
             <div class="result-row highlight">
-                <span>装${targetPieces}片需要:</span>
-                <span>${palletsNeeded} 个托盘</span>
+                <span>For ${targetPieces} pieces:</span>
+                <span>${palletsNeeded} pallets needed</span>
             </div>
             ${remainingPieces > 0 ? `
             <div class="result-row">
-                <span>可装载片数:</span>
-                <span>${piecesInPallets.toLocaleString()} 片</span>
+                <span>Total can be packed:</span>
+                <span>${piecesInPallets.toLocaleString()} pieces</span>
             </div>
             <div class="result-row">
-                <span>多出片数:</span>
-                <span>${remainingPieces} 片</span>
+                <span>Excess pieces:</span>
+                <span>${remainingPieces} pieces</span>
             </div>` : ''}
         `;
     }
