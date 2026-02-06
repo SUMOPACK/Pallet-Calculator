@@ -8,7 +8,7 @@ const FLUTE_PARAMS = {
 // Pallet 尺寸标准 - 只使用最大容差尺寸
 const PALLET_DIMENSIONS = {
     width: 1300,   // 最大容差宽度
-    length: 1100   // 最大容差长度
+    length: 1250   // 最大容差长度
 };
 
 function calculate() {
@@ -72,3 +72,4 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', calculate);
     });
 });
+
