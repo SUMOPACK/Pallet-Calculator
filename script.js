@@ -5,12 +5,10 @@ const FLUTE_PARAMS = {
     BF: { layers: 16, pcsPerBundle: 20 }
 };
 
-// Pallet 尺寸标准
+// Pallet 尺寸标准 - 只使用最大容差尺寸
 const PALLET_DIMENSIONS = {
-    width: 1200,      // 标准宽度
-    length: 1000,     // 标准长度
-    maxWidth: 1300,   // 最大容差宽度（可接受范围）
-    maxLength: 1100   // 最大容差长度（可接受范围）
+    width: 1300,   // 最大容差宽度
+    length: 1100   // 最大容差长度
 };
 
 function calculate() {
@@ -30,33 +28,21 @@ function calculate() {
     const a = length + width;
     const b = width + height;
     
-    // 计算方向数量（区分可接受范围和严重超出）
-    const c = calculateDirectionQuantity(a, PALLET_DIMENSIONS.length, PALLET_DIMENSIONS.maxLength);
-    const d = calculateDirectionQuantity(b, PALLET_DIMENSIONS.width, PALLET_DIMENSIONS.maxWidth);
+    // 计算方向数量（基于1300x1100mm）
+    const c = Math.floor(PALLET_DIMENSIONS.length / a);
+    const d = Math.floor(PALLET_DIMENSIONS.width / b);
+    
+    // 确保至少为1
+    const cCount = Math.max(1, c);
+    const dCount = Math.max(1, d);
     
     // 计算捆数和总片数
-    const bundles = c * d;
+    const bundles = cCount * dCount;
     const flute = FLUTE_PARAMS[fluteType];
     const totalPcs = bundles * flute.pcsPerBundle * flute.layers;
 
     // 显示结果
-    displayResults(a, b, c, d, bundles, totalPcs);
-}
-
-// 精确的计算逻辑
-function calculateDirectionQuantity(boxDimension, palletDimension, maxDimension) {
-    // 1. 完全适合：正常计算数量
-    if (boxDimension <= palletDimension) {
-        return Math.floor(palletDimension / boxDimension);
-    }
-    // 2. 轻微超出但在可接受范围内：返回1
-    else if (boxDimension <= maxDimension) {
-        return 1;
-    }
-    // 3. 严重超出可接受范围：也返回1
-    else {
-        return 1;
-    }
+    displayResults(a, b, cCount, dCount, bundles, totalPcs);
 }
 
 function validateInput(length, width, height) {
